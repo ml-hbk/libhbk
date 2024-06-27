@@ -86,6 +86,19 @@ namespace hbk {
 				::strncpy(ifr.ifr_name, interfaceName.c_str(), sizeof(ifr.ifr_name));
 				ifr.ifr_name[sizeof(ifr.ifr_name) - 1] = '\0';
 
+                if ((::ioctl(sd, SIOCGIFFLAGS, reinterpret_cast < caddr_t > (&ifr), sizeof(ifr))) == 1) {
+                    ::syslog(LOG_ERR, "%s: error calling ioctl SIOCGIFFLAGS!", __FUNCTION__);
+                } else {
+                    ::syslog(LOG_INFO, "SIOCGIFFLAGS %s: flags 0x%x", interfaceName.c_str(), ifr.ifr_ifru.ifru_flags);
+                }
+
+                if ((::ioctl(sd, SIOCGIFFLAGS, reinterpret_cast < caddr_t > (&ifr), sizeof(ifr))) == 1) {
+                    ::syslog(LOG_ERR, "%s: error calling ioctl SIOCGIFPFLAGS!", __FUNCTION__);
+                } else {
+                    ::syslog(LOG_INFO, "SIOCGIFPFLAGS %s: flags 0x%x", interfaceName.c_str(), ifr.ifr_ifru.ifru_flags);
+                }
+
+
 				if ((::ioctl(sd, SIOCGIFHWADDR, reinterpret_cast < caddr_t > (&ifr), sizeof(ifr))) == 1) {
 					::syslog(LOG_ERR, "%s: error calling ioctl SIOCGIFHWADDR!", __FUNCTION__);
 				} else {
@@ -152,6 +165,14 @@ namespace hbk {
 
 			while (interface != nullptr) {
 				if (interface->ifa_addr != nullptr) {
+                    if (interface->ifa_flags & IFF_MASTER) {
+                        syslog(LOG_INFO, "IFAFLAGS 0x%x", interface->ifa_flags);
+                    }
+
+                    if (interface->ifa_flags & IFF_SLAVE) {
+                        syslog(LOG_INFO, "IFAFLAGS 0x%x", interface->ifa_flags);
+                    }
+
 					if (interface->ifa_flags & IFF_MULTICAST) {
 							hardwareInfo_t hardwareInfo = getHardwareInfo(interface->ifa_name);
 							if (hardwareInfo.isHardware) {
